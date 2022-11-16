@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <script src="https://login2explore.com/jpdb/resources/js/0.0.3/jpdb-commons.js"></script>
+        <title>MANSI JPDB</title>
+    </head>
+
+    <body>
+
+
+        <div class="container">
+
+            <h1>WELCOME TO JPDB INTERFACE</h1>
+
+
+            <form id="empForm" method="post">
+                <h4>DATABASE ENTRY</h4>
+                <br>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="db"  placeholder="ENTER DATABASE NAME">
+                </div>
+                <br>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="rel" placeholder="ENTER TABLE NAME">
+                </div>
+                <br> 
+                <h4>INSERT DATA</h4>  <br>
+
+                <div class="form-group">
+
+                    <input type="text" class="form-control" id="id" placeholder="ENTER EMPLOYEE ID">
+                </div>
+                <br>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="name" placeholder="ENTER EMPLOYEE NAME">
+                </div>
+                <br>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="email" placeholder="ENTER EMPLOYEE EMAIL">
+                </div>
+                <br>
+                <div class="form-group">
+                    <input type="tel" id="number" name="phone" placeholder="ENTER EMPLOYEE MOBILE"  pattern="[0-9]{10}" required><br>
+                </div>
+                <br>
+                <h4>UPDATE DATA</h4>  <br>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="key" placeholder="ENTER COLOUMN NAME">
+                </div>
+                <br>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="value"
+                           placeholder="ENTER NEW VALUE ">
+                </div>
+                <br>
+                <h4>UPDATE OR DELETE RECORD</h4>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="record" placeholder="ENTER RECORD NUMBER">
+                </div>
+
+                <br>
+                <!-- <button type="submit" class="btn btn-primary">Submit</button> -->
+                <input type="button" class="btn btn-primary" id="empSave" value="INSERT"  onclick="putData();" />
+
+                <input type="button" class="btn btn-primary" id="empUp" value="Update"  onclick="updateData();" />
+                <input type="button" class="btn btn-danger" id="empDel" value="Delete"  onclick="deleteData();" />
+
+            </form>
+
+
+
+
+        </div>
+
+
+        <script>
+            function validateAndGetFormData(id, name, email, number) {
+                var regEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/g;
+                var regPhone = /^\d{10}$/;
+                var regName = /\d+$/g;
+
+                if (id === "") {
+                    alert("Employee ID Required Value");
+                    $("#empId").focus();
+                    return "";
+                }
+
+                if (name === "" || regName.test(name)) {
+                    alert("Enter correct Employee name");
+                    $("#empName").focus();
+                    return "";
+                }
+
+                if (email === "" || !regEmail.test(email)) {
+                    alert("Enter correct Employee Email");
+                    $("#empEmail").focus();
+                    return "";
+                }
+                if (number === "" || !regPhone.test(number)) {
+                    alert("Enter number correctly!!");
+                    $("#number").focus();
+                    return "";
+                }
+                var jsonStrObj = {
+                    id: id,
+                    name: name,
+                    email: email,
+                    number: number
+
+                };
+                return JSON.stringify(jsonStrObj);
+            }
+
+            function putData() {
+
+                let db = $("#db").val();
+                let rel = $("#rel").val();
+                let id = $("#id").val();
+                let name = $("#name").val();
+                let email = $("#email").val();
+                let number = $("#number").val();
+
+                var jsonStr = validateAndGetFormData(id, name, email, number);
+                if (jsonStr === "") {
+                    return;
+                }
+                let data = putdata(db, rel, id, name, email, number);
+
+                alert(data);
+                jQuery.ajaxSetup({async: false});
+                var resultObj = executeCommandAtGivenBaseUrl(data, "http://api.login2explore.com:5577", "/api/iml");
+                alert(JSON.stringify(resultObj));
+                jQuery.ajaxSetup({async: true});
+
+                $("#db").val("");
+                $("#rel").val("");
+                $("#id").val("");
+                $("#name").val("");
+                $("#email").val("");
+                $("#number").val("");
+
+            }
+
+
+
+            function putdata(db, rel, id, name, email, number) {
+                let pdata = `
+                {
+                    "token": "90938077|-31949268713321395|90953047",
+                    "cmd": "PUT",
+                    "dbName": "${db}",
+                    "rel": "${rel}",
+                    "jsonStr": {
+                        "id": "${id}",
+                        "name": "${name}",
+                        "email": "${email}",
+                        "mobileno": "${number}"
+                    }
+                }
+                `;
+                return pdata;
+            }
+            function deleteData() {
+
+                let db = $("#db").val();
+                let rel = $("#rel").val();
+                let record = $("#record").val();
+
+                let data = deledata(db, rel, record);
+                alert(data);
+                jQuery.ajaxSetup({async: false});
+                var resultObj = executeCommandAtGivenBaseUrl(data, "http://api.login2explore.com:5577", "/api/iml");
+                alert(JSON.stringify(resultObj));
+                jQuery.ajaxSetup({async: true});
+
+                $("#db").val("");
+                $("#rel").val("");
+                $("#record").val("");
+            }
+
+
+
+            function deledata(db, rel, record) {
+                let ddata = `
+                {
+                    "token": "90938077|-31949268713321395|90953047",
+                    "cmd": "REMOVE",
+                    "dbName": "${db}",
+                    "rel": "${rel}",
+                    "record": ${record},
+                    "jsonStr" : {}
+                }
+                `;
+                return ddata;
+            }
+            function updateData() {
+
+                let db = $("#db").val();
+                let rel = $("#rel").val();
+                let record = $("#record").val();
+                let key = $("#key").val();
+                let value = $("#value").val();
+
+                let data = updata(db, rel, record, key, value);
+                alert(data);
+                jQuery.ajaxSetup({async: false});
+                var resultObj = executeCommandAtGivenBaseUrl(data, "http://api.login2explore.com:5577", "/api/iml");
+                alert(JSON.stringify(resultObj));
+                jQuery.ajaxSetup({async: true});
+
+                $("#db").val("");
+                $("#rel").val("");
+                $("#record").val("");
+                $("#key").val("");
+                $("#value").val("");
+            }
+
+
+
+            function updata(db, rel, record, key, value) {
+                let udata = `
+                {
+                    "token": "90938077|-31949268713321395|90953047",
+                    "cmd": "UPDATE",
+                    "dbName": "${db}",
+                    "rel": "${rel}",
+                    "jsonStr": {
+                    "${record}":{
+                        "${key}": "${value}"
+                      }
+                    }
+                }
+                `;
+                return udata;
+            }
+
+        </script>
+
+
+    </body>
+
+</html>
